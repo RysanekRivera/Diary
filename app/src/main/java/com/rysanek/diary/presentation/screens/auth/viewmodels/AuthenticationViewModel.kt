@@ -6,11 +6,16 @@ import androidx.lifecycle.viewModelScope
 import com.rysanek.diary.utils.Constants.APP_ID
 import io.realm.kotlin.mongodb.App
 import io.realm.kotlin.mongodb.Credentials
-import io.realm.kotlin.mongodb.GoogleAuthType
 import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AuthenticationViewModel : ViewModel() {
+
+    var authenticated = mutableStateOf(false)
+        private set
 
     var loadingState = mutableStateOf(false)
         private set
@@ -21,17 +26,31 @@ class AuthenticationViewModel : ViewModel() {
 
     fun signInWithMongoAtlas(
         tokenId: String,
-        onSuccess: (Boolean) -> Unit,
+        onSuccess: () -> Unit,
         onError: (Exception) -> Unit
     ) {
 
         viewModelScope.launch(IO) {
             runCatching {
-                App.create(APP_ID).login(Credentials.google(tokenId, GoogleAuthType.ID_TOKEN)).loggedIn
-            }.onSuccess { result ->
-                onSuccess(result)
+                App.create(APP_ID).login(Credentials.jwt(tokenId)).loggedIn
+            }.onSuccess { success ->
+
+                if (success) {
+                    withContext(Main) {
+                        onSuccess()
+                        delay(800)
+                        authenticated.value = true
+                    }
+                } else {
+                    withContext(Main) {
+                        onError(Exception("User is not logged in."))
+                    }
+                }
+
             }.onFailure { e ->
-                onError(Exception(e.message))
+                withContext(Main) {
+                    onError(Exception(e.message))
+                }
             }
 
         }

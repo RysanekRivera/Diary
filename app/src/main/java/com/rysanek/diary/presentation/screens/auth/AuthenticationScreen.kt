@@ -1,11 +1,13 @@
 package com.rysanek.diary.presentation.screens.auth
 
 import android.annotation.SuppressLint
-import android.util.Log
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import com.rysanek.diary.utils.Constants.CLIENT_ID
 import com.stevdzasan.messagebar.ContentWithMessageBar
@@ -16,15 +18,22 @@ import com.stevdzasan.onetap.OneTapSignInWithGoogle
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun AuthenticationScreen(
+    authenticated: Boolean,
     loadingState: Boolean,
     onButtonClicked: () -> Unit,
     messageBarState: MessageBarState,
     onTokenIdReceived: (String) -> Unit,
     onErrorReceived: (String) -> Unit,
-    oneTapSignInState: OneTapSignInState
+    oneTapSignInState: OneTapSignInState,
+    navigateToHome: () -> Unit
 ) {
 
-    Scaffold {
+    Scaffold(
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surface)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+    ) {
         ContentWithMessageBar(
             messageBarState = messageBarState,
             errorMaxLines = 4
@@ -47,4 +56,9 @@ fun AuthenticationScreen(
         }
     )
 
+    LaunchedEffect(key1 = authenticated){
+        if (authenticated) {
+            navigateToHome()
+        }
+    }
 }
